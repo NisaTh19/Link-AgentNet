@@ -1,0 +1,23 @@
+# Python 3.9+ recommended
+# Install PyTorch first: https://pytorch.org/get-started/locally/
+# Then install PyG:       https://pytorch-geometric.readthedocs.io/en/latest/install/installation.html
+
+torch>=1.12
+torch-geometric>=2.0
+torch-scatter
+torch-sparse
+
+networkx>=2.7
+scikit-learn>=1.0
+scipy>=1.7
+numpy>=1.22
+pandas>=1.4
+matplotlib
+seaborn
+
+optuna>=3.0
+test-tube
+
+# Interactive app
+streamlit>=1.30
+plotly>=5.0

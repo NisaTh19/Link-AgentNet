@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+.Python
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Windows metadata
+*:Zone.Identifier
+
+# Full checkpoint archives — too large for GitHub (~200–265 MB each).
+out/KarateLink_checkpoint/
+out/GePhil_checkpoint/
+out/KarateLink_checkpoint.zip
+out/GePhil_checkpoint.zip
+# out/checkpoints/ contains only the two best-epoch files (~0.6 MB each) and IS committed.
+
+# IDE / OS
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Raw source data (lab dataset — not distributed publicly)
+data/
+
+# Secrets
+.env
+*.env
