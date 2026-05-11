@@ -1,8 +1,10 @@
-# Direct wheel URLs — avoids build-from-source issues on Streamlit Cloud (CPU-only)
-torch @ https://download.pytorch.org/whl/cpu/torch-2.1.0%2Bcpu-cp310-cp310-linux_x86_64.whl
+# Install PyTorch first: https://pytorch.org/get-started/locally/
+# Install PyG:           https://pytorch-geometric.readthedocs.io/en/latest/install/installation.html
+
+torch==2.1.0
 torch-geometric==2.4.0
-torch-scatter @ https://data.pyg.org/whl/torch-2.1.0%2Bcpu/torch_scatter-2.1.2%2Bpt21cpu-cp310-cp310-linux_x86_64.whl
-torch-sparse @ https://data.pyg.org/whl/torch-2.1.0%2Bcpu/torch_sparse-0.6.18%2Bpt21cpu-cp310-cp310-linux_x86_64.whl
+torch-scatter==2.1.2
+torch-sparse==0.6.18
 
 networkx>=2.7
 scikit-learn>=1.0

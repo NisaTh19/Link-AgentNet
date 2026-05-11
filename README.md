@@ -1,3 +1,14 @@
+---
+title: Link-AgentNet
+emoji: 🕸️
+colorFrom: blue
+colorTo: indigo
+sdk: streamlit
+sdk_version: 1.57.0
+app_file: src/app.py
+pinned: false
+---
+
 # Link-AgentNet
 
 **Towards Agent-Based Explanations for Link Prediction** - Bachelor's Thesis
