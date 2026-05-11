@@ -9,7 +9,10 @@ from torch_scatter import scatter_max, scatter_add
 from math import sqrt, log
 from typing import Optional
 from argparse import ArgumentParser
-from test_tube import HyperOptArgumentParser
+try:
+    from test_tube import HyperOptArgumentParser
+except ImportError:
+    HyperOptArgumentParser = ArgumentParser
 
 import torch_sparse.tensor
 
