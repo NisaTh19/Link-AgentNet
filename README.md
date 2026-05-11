@@ -13,16 +13,6 @@ Two datasets are included:
 
 ---
 
-## Demo
-
-![Network overview and node pair selector](assets/demo1.png)
-
-![Agent walk comparison — learned policy vs random walk](assets/demo2.png)
-
-![XAI analysis — visitation energy and node ablation importance](assets/demo3.png)
-
----
-
 ## Installation
 
 ```bash
@@ -128,6 +118,12 @@ The app automatically picks the best-performing model split. Features:
 - Node-pair selector → learned policy vs. random-walk prediction with confidence
 - Step-by-step agent walk on the k-hop subgraph, filterable per agent
 - Optional XAI panel: per-node visitation energy, ablation importance, Jaccard walk overlap, and Spearman ρ between energy and importance
+
+![Network overview and node pair selector](assets/demo1.png)
+
+![Agent walk comparison — learned policy vs random walk](assets/demo2.png)
+
+![XAI analysis — visitation energy and node ablation importance](assets/demo3.png)
 
 ---
 
