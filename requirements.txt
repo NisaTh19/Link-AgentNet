@@ -1,11 +1,12 @@
-# Python 3.9+ recommended
-# Install PyTorch first: https://pytorch.org/get-started/locally/
-# Then install PyG:       https://pytorch-geometric.readthedocs.io/en/latest/install/installation.html
+# PyTorch CPU-only (Streamlit Cloud has no GPU)
+--extra-index-url https://download.pytorch.org/whl/cpu
+# Prebuilt PyG wheels for torch 2.1.0 CPU
+--find-links https://data.pyg.org/whl/torch-2.1.0+cpu.html
 
-torch>=1.12
+torch==2.1.0
 torch-geometric==2.4.0
-torch-scatter==2.1.2
-torch-sparse==0.6.18
+torch-scatter
+torch-sparse
 
 networkx>=2.7
 scikit-learn>=1.0
@@ -18,6 +19,5 @@ seaborn
 optuna>=3.0
 test-tube
 
-# Interactive app
 streamlit>=1.30
 plotly>=5.0
