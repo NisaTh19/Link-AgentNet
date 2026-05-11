@@ -13,6 +13,16 @@ Two datasets are included:
 
 ---
 
+## Demo
+
+![Network overview and node pair selector](assets/demo1.png)
+
+![Agent walk comparison — learned policy vs random walk](assets/demo2.png)
+
+![XAI analysis — visitation energy and node ablation importance](assets/demo3.png)
+
+---
+
 ## Installation
 
 ```bash
