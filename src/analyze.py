@@ -69,25 +69,6 @@ def degrees_within_subgraph(data):
             for i, (i_d, o_d, t_d) in enumerate(zip(in_deg, out_deg, tot))}
 
 
-def best_epoch_for_each_split(metrics_csv):
-    df = pd.read_csv(metrics_csv)
-    best_epochs = (
-        df.loc[df.groupby("split")["test_f1"].idxmax()]
-          .set_index("split")["epoch"]
-          .to_dict()
-    )
-    print("Per-split best epochs:", best_epochs)
-    return best_epochs
-
-
-def load_checkpoint(model, ckpt_dir, epoch, device):
-    ckpt = torch.load(
-        os.path.join(ckpt_dir, f"epoch_{epoch}.pt"),
-        map_location=device,
-        weights_only=False,
-    )
-    model.load_state_dict(ckpt["model_state_dict"], strict=True)
-
 
 # ---------------------------------------------------------------------------
 # Model builder (DRY helper so we don't repeat 20 kwargs three times)
@@ -135,10 +116,10 @@ def _build_model(args, num_features, random_agent):
 # Core XAI loop
 # ---------------------------------------------------------------------------
 
-def run_xai(args, dataset, splits, ckpt_file=None, only_split=None):
+def run_xai(args, dataset, splits, ckpt_file, only_split):
     """
-    ckpt_file  : path to a single .pt checkpoint (skips per-split loading).
-    only_split : if set, only analyse this split index (ignored when ckpt_file is None).
+    ckpt_file  : path to a single .pt checkpoint file.
+    only_split : index of the split whose test set to analyse.
     """
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -160,35 +141,17 @@ def run_xai(args, dataset, splits, ckpt_file=None, only_split=None):
         args.use_step_readout_lin = False
         args.readout_mlp = False
 
-    # Only load the metrics CSV when running across full checkpoint directories
-    if ckpt_file is None:
-        best_epoch_dict = best_epoch_for_each_split(
-            os.path.join(args.output_dir, "metrics_per_split_epoch.csv")
-        )
-
     rows = []
 
     for split_id, (_, test_idx) in enumerate(splits):
-        if only_split is not None and split_id != only_split:
+        if split_id != only_split:
             continue
 
-        # Load checkpoint
+        print(f"\n=== Split {split_id}  (checkpoint: {os.path.basename(ckpt_file)}) ===")
         base_model = _build_model(args, dataset.num_features, random_agent=False)
         base_model = base_model.to(device)
-
-        if ckpt_file is not None:
-            print(f"\n=== Split {split_id}  (checkpoint: {os.path.basename(ckpt_file)}) ===")
-            ckpt = torch.load(ckpt_file, map_location=device, weights_only=False)
-            base_model.load_state_dict(ckpt['model_state_dict'], strict=True)
-        else:
-            best_epoch = best_epoch_dict[split_id]
-            print(f"\n=== Split {split_id}  (best epoch {best_epoch}) ===")
-            load_checkpoint(
-                base_model,
-                os.path.join(args.checkpoint_dir, f"split_{split_id}"),
-                best_epoch,
-                device,
-            )
+        ckpt = torch.load(ckpt_file, map_location=device, weights_only=False)
+        base_model.load_state_dict(ckpt['model_state_dict'], strict=True)
 
         model_learn = _build_model(args, dataset.num_features, random_agent=False)
         model_learn.load_state_dict(base_model.state_dict())
@@ -391,12 +354,10 @@ if __name__ == '__main__':
     parser.add_argument('--data-dir', default=os.path.join(_REPO_ROOT, 'out', 'datasets_splits'),
                         help='Dir containing <dataset>.pkl and <dataset>_splits.pkl')
     parser.add_argument('--checkpoint', default=None,
-                        help='Single .pt checkpoint file (default: out/checkpoints/<dataset>_best.pt). '
-                             'Use --checkpoint-dir to run across all splits instead.')
-    parser.add_argument('--checkpoint-dir', default=None,
-                        help='Dir with split_N/ subdirs — runs XAI across all splits.')
+                        help='Path to a .pt checkpoint file '
+                             '(default: out/checkpoints/<dataset>_best.pt)')
     parser.add_argument('--output-dir', default=None,
-                        help='Dir for learn_vs_rw.csv output (default: ../out/<dataset>_output)')
+                        help='Dir for learn_vs_rw.csv output (default: out/<dataset>_output)')
     parser.add_argument('--optuna-db', default=None,
                         help='Optuna SQLite file (overrides dataset default)')
     parser.add_argument('--study-name', default=None,
@@ -420,23 +381,20 @@ if __name__ == '__main__':
     if cli.self_loops is None:
         cli.self_loops = cfg['self_loops']
 
-    # Resolve checkpoint: single file vs full directory
-    use_single_ckpt = cli.checkpoint_dir is None
-    if use_single_ckpt:
-        if cli.checkpoint is None:
-            cli.checkpoint = os.path.join(_REPO_ROOT, 'out', 'checkpoints', f'{ds}_best.pt')
-        if not os.path.isfile(cli.checkpoint):
-            print(f"Checkpoint not found: {cli.checkpoint}")
-            print("Run training first or provide --checkpoint-dir for full multi-split analysis.")
-            exit(1)
-        # Determine which split the best checkpoint came from (for the correct test set)
-        import pandas as pd
-        metrics_csv = os.path.join(cli.output_dir, 'metrics_per_split_epoch.csv')
-        df_m = pd.read_csv(metrics_csv)
-        best_split = int(df_m.groupby('split')['test_f1'].max().idxmax())
-        print(f"Using single checkpoint: {cli.checkpoint}  (split {best_split} test set)")
-    else:
-        best_split = None
+    # Resolve checkpoint file
+    if cli.checkpoint is None:
+        cli.checkpoint = os.path.join(_REPO_ROOT, 'out', 'checkpoints', f'{ds}_best.pt')
+    if not os.path.isfile(cli.checkpoint):
+        print(f"Checkpoint not found: {cli.checkpoint}")
+        print("Train the model first with: python link_prediction.py --dataset " + ds)
+        exit(1)
+
+    # Determine which split this checkpoint came from (for the correct test set)
+    import pandas as pd
+    metrics_csv = os.path.join(cli.output_dir, 'metrics_per_split_epoch.csv')
+    df_m = pd.read_csv(metrics_csv)
+    best_split = int(df_m.groupby('split')['test_f1'].max().idxmax())
+    print(f"Using checkpoint: {cli.checkpoint}  (split {best_split} test set)")
 
     import optuna
     optuna.logging.set_verbosity(optuna.logging.WARNING)
@@ -467,7 +425,6 @@ if __name__ == '__main__':
     args.bias_attention = True
     args.self_loops = cli.self_loops
     args.num_edge_features = cli.num_edge_features
-    args.checkpoint_dir = cli.checkpoint_dir
     args.output_dir = cli.output_dir
 
     set_seed(42)
@@ -526,6 +483,6 @@ if __name__ == '__main__':
         dataset.__class__ = _WithEdgeAttr
 
     df = run_xai(args, dataset, splits,
-                 ckpt_file=cli.checkpoint if use_single_ckpt else None,
+                 ckpt_file=cli.checkpoint,
                  only_split=best_split)
     print_summary(df)

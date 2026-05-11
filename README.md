@@ -53,7 +53,7 @@ pip install -r requirements.txt
     └── plots.ipynb                # Network visualizations & Optuna convergence
 ```
 
-> **Checkpoints:** The best-performing model weights for each dataset are included in `out/checkpoints/` and are loaded automatically by the Streamlit app. Full checkpoint archives (all epochs, all splits) are not included due to file size (~210–265 MB each).
+> **Checkpoints:** The best-performing model weights for each dataset are included in `out/checkpoints/` and are loaded automatically by the Streamlit app and the explainability script.
 
 ---
 
@@ -93,20 +93,15 @@ Key flags:
 
 ## Explainability analysis (CLI)
 
-Compares the learned agent policy against a random-walk baseline, saving per-node metrics to `out/<dataset>_output/learn_vs_rw.csv`.
+Compares the learned agent policy against a random-walk baseline. For each test sample it computes per-node visitation energy, ablation importance, and Jaccard walk overlap, saving results to `out/<dataset>_output/learn_vs_rw.csv`.
 
 ```bash
 cd src/
-
-# Uses the bundled best checkpoint — works out of the box
 python analyze.py --dataset KarateLink
 python analyze.py --dataset GePhil
-
-# Full multi-split analysis (requires unzipping the checkpoint archives first)
-python analyze.py --dataset KarateLink --checkpoint-dir ../out/KarateLink_checkpoint
 ```
 
-The script prints F1/AUC scores and Wilcoxon signed-rank p-values comparing the learned policy against a random-walk baseline.
+The script prints F1/AUC scores and Wilcoxon signed-rank p-values comparing the two policies.
 
 ---
 
